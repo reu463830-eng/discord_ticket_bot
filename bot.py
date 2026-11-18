@@ -457,19 +457,18 @@ async def on_message(message: discord.Message):
         async with message.channel.typing():
             answer = await ask_ai(message.content)
         embed = discord.Embed(description=answer, color=discord.Color.yellow())
-        embed.set_footer(text="Пчолки AI • BSS Help • ветка удалится через 5 мин после последнего ответа")
+        embed.set_footer(text="Пчолки AI • BSS Help")
         await message.reply(embed=embed)
 
         # Удаляем ветку через 5 минут после последнего ответа
         thread = message.channel
         await asyncio.sleep(300)
-        # Проверяем что после нашего ответа не было новых сообщений
-        last_msg = await thread.history(limit=1).flatten()
-        if last_msg and last_msg[0].author == bot.user:
-            try:
+        try:
+            msgs = [m async for m in thread.history(limit=1)]
+            if msgs and msgs[0].author == bot.user:
                 await thread.delete()
-            except Exception:
-                pass
+        except Exception:
+            pass
     await bot.process_commands(message)
 
 
@@ -504,7 +503,8 @@ class CreateThreadView(ui.View):
                         "Знаю про пчёл и их характеристики, лучшие билды ульев, "
                         "поля для фарма, баффы, квесты медведей, амулеты, Royal Jelly, "
                         "gifted пчёл и прогрессию от новичка до эндгейма.\n\n"
-                        "Отвечаю развёрнуто — с объяснением и опытом игроков."
+                        "Отвечаю развёрнуто — с объяснением и опытом игроков.\n\n"
+                        "Ветка автоматически удалится через 5 минут после последнего ответа."
                     ),
                     color=discord.Color.yellow(),
                 ).set_footer(text="Пчолки AI • BSS Help"),

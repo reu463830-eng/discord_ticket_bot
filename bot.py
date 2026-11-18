@@ -129,7 +129,8 @@ async def create_ticket_channel(interaction: discord.Interaction, category_name:
             )
 
     ticket_counter += 1
-    name = f"ticket-{ticket_counter:04d}"
+    safe = re.sub(r"[^a-z0-9-]", "", user.name.lower())[:20] or "user"
+    name = f"ticket-{safe}"
 
     try:
         channel = await guild.create_text_channel(

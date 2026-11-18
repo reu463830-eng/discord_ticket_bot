@@ -77,8 +77,10 @@ async def ask_ai(question: str) -> str:
         return "❌ OpenRouter API ключ не настроен."
     system_prompt = (
         "Ты — Пчолки AI, эксперт по Bee Swarm Simulator (Roblox). "
-        "Пользователь написал тебе вопрос. СРАЗУ отвечай на него — без вступлений, без 'привет', без 'какой у тебя вопрос'. "
-        "Просто дай ответ. На русском. С эмодзи."
+        "Отвечай развёрнуто и подробно на русском языке. "
+        "Структура ответа: сначала прямой ответ на вопрос, потом объяснение почему — основываясь на опыте игроков, их отзывах и игровой механике. "
+        "Без эмодзи. Без вступлений типа 'привет' или 'хороший вопрос'. "
+        "Сразу по делу."
     )
     payload = {
         "model": "openai/gpt-4o-mini",
@@ -86,7 +88,7 @@ async def ask_ai(question: str) -> str:
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question},
         ],
-        "max_tokens": 600,
+        "max_tokens": 1200,
     }
     headers = {
         "Authorization": f"Bearer {OPENROUTER_KEY}",
@@ -484,7 +486,14 @@ class CreateThreadView(ui.View):
             await thread.send(
                 content=user.mention,
                 embed=discord.Embed(
-                    description="🐝 Задавай вопрос по **Bee Swarm Simulator** — отвечу!",
+                    title="Пчолки AI — помощник по BSS",
+                    description=(
+                        "Задавай любой вопрос по **Bee Swarm Simulator**.\n\n"
+                        "Знаю про пчёл и их характеристики, лучшие билды ульев, "
+                        "поля для фарма, баффы, квесты медведей, амулеты, Royal Jelly, "
+                        "gifted пчёл и прогрессию от новичка до эндгейма.\n\n"
+                        "Отвечаю развёрнуто — с объяснением и опытом игроков."
+                    ),
                     color=discord.Color.yellow(),
                 ).set_footer(text="Пчолки AI • BSS Help"),
             )

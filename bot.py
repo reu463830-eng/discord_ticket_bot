@@ -76,9 +76,10 @@ async def ask_ai(question: str) -> str:
         return "❌ OpenRouter API ключ не настроен."
     system_prompt = (
         "Ты — Пчолки AI, эксперт по игре Bee Swarm Simulator (Roblox). "
-        "Отвечай на русском языке, кратко и по делу. "
-        "Используй эмодзи для наглядности. "
-        "Если вопрос не по Bee Swarm Simulator — вежливо скажи что отвечаешь только по этой игре."
+        "ВАЖНО: отвечай ТОЛЬКО на вопрос пользователя — без приветствий, без 'я готов помочь', без лишних слов. "
+        "Сразу давай конкретный ответ на вопрос. "
+        "Отвечай на русском языке. Используй эмодзи для наглядности. "
+        "Если вопрос не по Bee Swarm Simulator — коротко скажи что отвечаешь только по этой игре."
     )
     payload = {
         "model": "meta-llama/llama-3.1-8b-instruct",
@@ -488,10 +489,7 @@ class CreateThreadView(ui.View):
             await thread.send(
                 content=user.mention,
                 embed=discord.Embed(
-                    description=(
-                        "🐝 Привет! Спрашивай что хочешь — постараюсь ответить.\n\n"
-                        "Знаю про пчёл, ульи, баффы, поля, квесты, коды и многое другое по **Bee Swarm Simulator**!"
-                    ),
+                    description="🐝 Задавай вопрос по **Bee Swarm Simulator** — отвечу!",
                     color=discord.Color.yellow(),
                 ).set_footer(text="Пчолки AI • BSS Help"),
             )

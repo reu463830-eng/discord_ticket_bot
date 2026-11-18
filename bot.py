@@ -235,27 +235,52 @@ class CloseView(ui.View):
             await interaction.followup.send("Не хватает прав на удаление канала.", ephemeral=True)
 
 
+class CategorySelect(ui.View):
+    def __init__(self):
+        super().__init__(timeout=60)
+
+    @ui.select(
+        placeholder="Выбери категорию...",
+        custom_id="ticket_category_select",
+        options=[
+            discord.SelectOption(label="Помощь",  emoji="🆘", description="Нужна помощь или роль User"),
+            discord.SelectOption(label="Жалоба",  emoji="⚠️", description="Пожаловаться на игрока"),
+        ]
+    )
+    async def select_category(self, interaction: discord.Interaction, select: ui.Select):
+        await interaction.response.send_modal(TicketModal(select.values[0]))
+
+
 class TicketView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
     @ui.button(
-        label="🆘 Помощь",
-        style=discord.ButtonStyle.primary,
-        custom_id="ticket_help",
+        label="Create Ticket",
+        style=discord.ButtonStyle.success,
+        emoji="🎟️",
+        custom_id="create_ticket",
         row=0,
     )
-    async def ticket_help(self, interaction: discord.Interaction, button: ui.Button):
-        await interaction.response.send_modal(TicketModal("Помощь"))
+    async def create_ticket(self, interaction: discord.Interaction, button: ui.Button):
+        guild = interaction.guild
+        user  = interaction.user
+        if guild is None:
+            return
 
-    @ui.button(
-        label="⚠️ Жалоба",
-        style=discord.ButtonStyle.danger,
-        custom_id="ticket_report",
-        row=0,
-    )
-    async def ticket_report(self, interaction: discord.Interaction, button: ui.Button):
-        await interaction.response.send_modal(TicketModal("Жалоба"))
+        topic = f"ticket:{user.id}"
+        existing = next(
+            (ch for ch in guild.text_channels if ch.topic == topic), None
+        )
+        if existing:
+            await interaction.response.send_message(
+                f"У тебя уже есть открытый тикет: {existing.mention}", ephemeral=True
+            )
+            return
+
+        await interaction.response.send_message(
+            "Выбери тип обращения:", view=CategorySelect(), ephemeral=True
+        )
 
 
 # ---------- Панель ----------

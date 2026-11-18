@@ -42,6 +42,7 @@ DESCRIPTION = (
 )
 
 intents = discord.Intents.default()
+intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 ticket_meta: dict[int, dict] = {}
@@ -92,21 +93,23 @@ class CloseModal(ui.Modal, title="Закрытие тикета"):
 
         # DM создателю тикета
         if opener_id:
-            opener = guild.get_member(opener_id)
-            if opener:
-                try:
-                    dm_embed = discord.Embed(
-                        title="📪 Твой тикет закрыт",
-                        color=discord.Color.orange(),
-                        timestamp=datetime.now(MSK),
-                    )
-                    dm_embed.add_field(name="🗂️ Категория",       value=category,        inline=True)
-                    dm_embed.add_field(name="🔒 Закрыл",           value=str(closer),     inline=True)
-                    dm_embed.add_field(name="📝 Причина закрытия", value=close_reason,    inline=False)
-                    dm_embed.set_footer(text=f"Сервер: {guild.name}")
-                    await opener.send(embed=dm_embed)
-                except discord.Forbidden:
-                    print(f"Не удалось отправить DM {opener}")
+            try:
+                opener = await guild.fetch_member(opener_id)
+                dm_embed = discord.Embed(
+                    title="📪 Твой тикет закрыт",
+                    color=discord.Color.orange(),
+                    timestamp=datetime.now(MSK),
+                )
+                dm_embed.add_field(name="🗂️ Категория",       value=category,        inline=True)
+                dm_embed.add_field(name="🔒 Закрыл",           value=str(closer),     inline=True)
+                dm_embed.add_field(name="📝 Причина закрытия", value=close_reason,    inline=False)
+                dm_embed.set_footer(text=f"Сервер: {guild.name}")
+                await opener.send(embed=dm_embed)
+                print(f"DM отправлен {opener}")
+            except discord.NotFound:
+                print(f"Участник {opener_id} не найден на сервере")
+            except discord.Forbidden:
+                print(f"Не удалось отправить DM — личные сообщения закрыты")
 
         # Лог в ai-logs
         log_embed = discord.Embed(

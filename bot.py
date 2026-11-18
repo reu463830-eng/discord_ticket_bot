@@ -32,7 +32,7 @@ SUPPORT_CATEGORY = os.environ.get("SUPPORT_CATEGORY", "Support")
 LOG_CHANNEL      = os.environ.get("LOG_CHANNEL", "ai-logs")
 TICKETS_PNG      = BASE / "Tickets.png"
 STAFF_ROLES = [
-    "Staff", "Support", "Администратор", "Admin", "Moderator", "Модератор", "Админ",
+    "Staff", "Support", "Администратор", "Admin", "Moderator", "Модератор", "Админ", "Assistant", "Mod",
 ]
 
 DESCRIPTION = (
@@ -74,6 +74,16 @@ class CloseView(ui.View):
         guild   = interaction.guild
         closer  = interaction.user
 
+        # Проверка прав — только стафф может закрывать
+        user_role_names = [r.name for r in closer.roles]
+        is_staff = any(r in user_role_names for r in STAFF_ROLES)
+
+        if not is_staff:
+            await interaction.response.send_message(
+                "❌ Только персонал может закрывать тикеты.", ephemeral=True
+            )
+            return
+
         await interaction.response.send_message("Закрываю тикет...", ephemeral=True)
 
         # Получаем мету тикета
@@ -84,7 +94,7 @@ class CloseView(ui.View):
 
         # Лог в ai-logs
         embed = discord.Embed(
-            title="� Тикет закрыт",
+            title="Тикет закрыт",
             color=discord.Color.red(),
             timestamp=datetime.now(MSK),
         )
@@ -182,7 +192,7 @@ class TicketView(ui.View):
 
         # Лог открытия в ai-logs
         log_embed = discord.Embed(
-            title="📬 Тикет открыт",
+            title="Тикет открыт",
             color=discord.Color.green(),
             timestamp=datetime.now(MSK),
         )

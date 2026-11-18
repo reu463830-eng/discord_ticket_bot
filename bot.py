@@ -238,32 +238,15 @@ async def on_ready():
         print(f"Канал #{PANEL_CHANNEL} не найден. Создай его или поменяй переменную PANEL_CHANNEL.")
         return
 
-    need_post = True
-    async for msg in channel.history(limit=20):
-        if msg.author == bot.user and msg.embeds:
-            ids = [
-                getattr(c, "custom_id", None)
-                for row in msg.components
-                for c in row.children
-            ]
-            has_image = bool(msg.embeds[0].image)
-            if "create_ticket" in ids and has_image:
-                print("Панель уже актуальна — пропускаю.")
-                need_post = False
-                break
+    # Удаляем все старые панели бота и постим свежую
+    async for msg in channel.history(limit=50):
+        if msg.author == bot.user:
             try:
                 await msg.delete()
                 print("Старая панель удалена.")
             except discord.Forbidden:
                 print("Нет прав удалить старую панель.")
-    if need_post:
-        await post_panel(channel)
-
-
-@bot.tree.command(name="setup_tickets", description="Опубликовать панель тикетов")
-async def setup_tickets(interaction: discord.Interaction):
-    await post_panel(interaction.channel)
-    await interaction.response.send_message("Готово!", ephemeral=True)
+    await post_panel(channel)
 
 
 bot.run(TOKEN)

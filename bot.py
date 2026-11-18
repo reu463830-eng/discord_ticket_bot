@@ -5,6 +5,7 @@
 
 import os
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 import discord
@@ -24,9 +25,10 @@ if not TOKEN or "ВСТАВЬ" in TOKEN:
         "Токен не найден! Добавь переменную окружения DISCORD_TOKEN на Railway."
     )
 
-PANEL_CHANNEL = os.environ.get("PANEL_CHANNEL", "create-ticket")
+PANEL_CHANNEL    = os.environ.get("PANEL_CHANNEL", "create-ticket")
 SUPPORT_CATEGORY = os.environ.get("SUPPORT_CATEGORY", "Support")
-TICKETS_PNG = BASE / "Tickets.png"
+LOG_CHANNEL      = os.environ.get("LOG_CHANNEL", "ai-logs")
+TICKETS_PNG      = BASE / "Tickets.png"
 STAFF_ROLES = [
     "Staff", "Support", "Администратор", "Admin", "Moderator", "Модератор", "Админ",
 ]
@@ -41,6 +43,22 @@ DESCRIPTION = (
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# ticket_id -> {opener, opened_at}
+ticket_meta: dict[int, dict] = {}
+
+
+# ---------- Логирование ----------
+
+async def log_ticket(guild: discord.Guild, embed: discord.Embed):
+    log_ch = discord.utils.get(guild.text_channels, name=LOG_CHANNEL)
+    if log_ch:
+        try:
+            await log_ch.send(embed=embed)
+        except discord.Forbidden:
+            print(f"Нет прав писать в #{LOG_CHANNEL}")
+    else:
+        print(f"Канал #{LOG_CHANNEL} не найден — логи не отправлены.")
+
 
 # ---------- Кнопки ----------
 
@@ -50,9 +68,34 @@ class CloseView(ui.View):
 
     @ui.button(label="Close Ticket", style=discord.ButtonStyle.danger, emoji="🔒", custom_id="close_ticket")
     async def close(self, interaction: discord.Interaction, button: ui.Button):
+        channel = interaction.channel
+        guild   = interaction.guild
+        closer  = interaction.user
+
         await interaction.response.send_message("Закрываю тикет...", ephemeral=True)
+
+        # Получаем мету тикета
+        meta = ticket_meta.pop(channel.id, None)
+        opener_name  = meta["opener"]     if meta else "Неизвестно"
+        opened_at    = meta["opened_at"]  if meta else "Неизвестно"
+        ticket_id    = channel.id
+
+        # Лог в ai-logs
+        embed = discord.Embed(
+            title="🔒 Тикет закрыт",
+            color=discord.Color.red(),
+            timestamp=datetime.now(timezone.utc),
+        )
+        embed.add_field(name="🎟️ ID тикета",        value=f"`{ticket_id}`",          inline=False)
+        embed.add_field(name="👤 Открыл",            value=opener_name,               inline=True)
+        embed.add_field(name="🕐 Когда открыт",      value=opened_at,                 inline=True)
+        embed.add_field(name="🔒 Закрыл",            value=f"{closer} (`{closer.id}`)", inline=False)
+        embed.set_footer(text="Пчолки AI • Ticket Log")
+
+        await log_ticket(guild, embed)
+
         try:
-            await interaction.channel.delete()
+            await channel.delete()
         except discord.Forbidden:
             await interaction.followup.send("Не хватает прав на удаление канала.", ephemeral=True)
 
@@ -70,7 +113,7 @@ class TicketView(ui.View):
     )
     async def create_ticket(self, interaction: discord.Interaction, button: ui.Button):
         guild = interaction.guild
-        user = interaction.user
+        user  = interaction.user
         if guild is None:
             return
 
@@ -128,7 +171,28 @@ class TicketView(ui.View):
             )
             return
 
-        embed = discord.Embed(
+        # Сохраняем мету
+        opened_at = datetime.now(timezone.utc).strftime("%d.%m.%Y %H:%M UTC")
+        ticket_meta[channel.id] = {
+            "opener":    f"{user} (`{user.id}`)",
+            "opened_at": opened_at,
+        }
+
+        # Лог открытия в ai-logs
+        log_embed = discord.Embed(
+            title="🎟️ Тикет открыт",
+            color=discord.Color.green(),
+            timestamp=datetime.now(timezone.utc),
+        )
+        log_embed.add_field(name="🎟️ ID тикета",   value=f"`{channel.id}`",          inline=False)
+        log_embed.add_field(name="👤 Открыл",       value=f"{user} (`{user.id}`)",    inline=True)
+        log_embed.add_field(name="🕐 Когда",        value=opened_at,                  inline=True)
+        log_embed.add_field(name="📌 Канал",        value=channel.mention,            inline=False)
+        log_embed.set_footer(text="Пчолки AI • Ticket Log")
+        await log_ticket(guild, log_embed)
+
+        # Сообщение внутри тикета
+        ticket_embed = discord.Embed(
             title="Тикет создан 🎫",
             description=(
                 f"{user.mention}, опиши свою проблему и приложи скриншоты.\n\n"
@@ -136,7 +200,7 @@ class TicketView(ui.View):
             ),
             color=discord.Color.blurple(),
         )
-        await channel.send(content=user.mention, embed=embed, view=CloseView())
+        await channel.send(content=user.mention, embed=ticket_embed, view=CloseView())
 
         await interaction.response.send_message(
             f"✅ Тикет создан: {channel.mention}", ephemeral=True

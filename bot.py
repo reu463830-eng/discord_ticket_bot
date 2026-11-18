@@ -486,7 +486,8 @@ class CreateThreadView(ui.View):
                     description="🐝 Задавай вопрос по **Bee Swarm Simulator** — отвечу!",
                     color=discord.Color.yellow(),
                 ).set_footer(text="Пчолки AI • BSS Help"),
-            )            await interaction.response.send_message(
+            )
+            await interaction.response.send_message(
                 f"✅ Ветка создана: {thread.mention}", ephemeral=True
             )
         except discord.Forbidden:

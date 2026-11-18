@@ -75,13 +75,9 @@ async def ask_ai(question: str) -> str:
     if not OPENROUTER_KEY:
         return "❌ OpenRouter API ключ не настроен."
     system_prompt = (
-        "Ты — Пчолки AI, помощник по игре Bee Swarm Simulator (Roblox BSS). "
-        "Отвечай на русском языке, конкретно и по делу, без воды. "
-        "Используй эмодзи. "
-        "Вопрос про BSS — отвечай на него полностью. "
-        "НЕ говори 'я готов помочь', 'напишите вопрос' — сразу давай ответ. "
-        "Создатель BSS — Onett (разработчик Roblox игры). "
-        "Знаешь всё про: пчёл, ульи, поля, мёд, баффы, квесты, медведей, амулеты, gifted, Royal Jelly."
+        "Ты — Пчолки AI, эксперт по Bee Swarm Simulator (Roblox). "
+        "Пользователь написал тебе вопрос. СРАЗУ отвечай на него — без вступлений, без 'привет', без 'какой у тебя вопрос'. "
+        "Просто дай ответ. На русском. С эмодзи."
     )
     payload = {
         "model": "openai/gpt-4o-mini",
@@ -449,7 +445,6 @@ async def post_panel(channel: discord.TextChannel):
 async def on_message(message: discord.Message):
     if message.author.bot:
         return
-    # Отвечаем на вопросы только внутри веток канала ai-help
     if (
         isinstance(message.channel, discord.Thread)
         and message.channel.parent
@@ -457,10 +452,7 @@ async def on_message(message: discord.Message):
     ):
         async with message.channel.typing():
             answer = await ask_ai(message.content)
-        embed = discord.Embed(
-            description=answer,
-            color=discord.Color.yellow(),
-        )
+        embed = discord.Embed(description=answer, color=discord.Color.yellow())
         embed.set_footer(text="Пчолки AI • BSS Help")
         await message.reply(embed=embed)
     await bot.process_commands(message)
@@ -494,8 +486,7 @@ class CreateThreadView(ui.View):
                     description="🐝 Задавай вопрос по **Bee Swarm Simulator** — отвечу!",
                     color=discord.Color.yellow(),
                 ).set_footer(text="Пчолки AI • BSS Help"),
-            )
-            await interaction.response.send_message(
+            )            await interaction.response.send_message(
                 f"✅ Ветка создана: {thread.mention}", ephemeral=True
             )
         except discord.Forbidden:

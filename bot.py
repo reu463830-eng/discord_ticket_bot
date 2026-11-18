@@ -7,13 +7,13 @@ import os
 import re
 import json
 import asyncio
+import aiohttp
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import discord
 from discord import ui
 from discord.ext import commands
-from bss_knowledge import find_answer
 
 BASE = Path(__file__).resolve().parent
 
@@ -31,6 +31,7 @@ PANEL_CHANNEL    = os.environ.get("PANEL_CHANNEL", "create-ticket")
 SUPPORT_CATEGORY = os.environ.get("SUPPORT_CATEGORY", "Support")
 LOG_CHANNEL      = os.environ.get("LOG_CHANNEL", "ai-logs")
 HELP_CHANNEL     = os.environ.get("HELP_CHANNEL", "ai-help")
+OPENROUTER_KEY   = os.environ.get("OPENROUTER_API_KEY", "")
 TICKETS_PNG      = BASE / "Tickets.png"
 STAFF_ROLES = [
     "Assistant", "Mod", "*",
@@ -68,6 +69,43 @@ def save_stats(stats: dict):
     STATS_FILE.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
 
 stats = load_stats()
+
+
+async def ask_ai(question: str) -> str:
+    if not OPENROUTER_KEY:
+        return "❌ OpenRouter API ключ не настроен."
+    system_prompt = (
+        "Ты — Пчолки AI, эксперт по игре Bee Swarm Simulator (Roblox). "
+        "Отвечай на русском языке, кратко и по делу. "
+        "Используй эмодзи для наглядности. "
+        "Если вопрос не по Bee Swarm Simulator — вежливо скажи что отвечаешь только по этой игре."
+    )
+    payload = {
+        "model": "meta-llama/llama-3.1-8b-instruct:free",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": question},
+        ],
+        "max_tokens": 600,
+    }
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://discord.com",
+        "X-Title": "Пчолки AI",
+    }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp:
+                data = await resp.json()
+                return data["choices"][0]["message"]["content"]
+    except Exception as e:
+        return f"❌ Ошибка при запросе к AI: {e}"
 
 
 # ---------- Логирование ----------
@@ -410,7 +448,7 @@ async def on_message(message: discord.Message):
         and message.channel.parent.name == HELP_CHANNEL
     ):
         async with message.channel.typing():
-            answer = find_answer(message.content)
+            answer = await ask_ai(message.content)
         embed = discord.Embed(
             description=answer,
             color=discord.Color.yellow(),

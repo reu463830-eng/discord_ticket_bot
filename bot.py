@@ -82,7 +82,7 @@ async def ask_ai(question: str) -> str:
         "Если вопрос не по Bee Swarm Simulator — коротко скажи что отвечаешь только по этой игре."
     )
     payload = {
-        "model": "google/gemini-flash-1.5",
+        "model": "openai/gpt-4o-mini",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question},

@@ -154,3 +154,90 @@ BSS_QA += [
         "answer": "📐 **Vector Bee (Mythic) — #1 пчела в игре**\n\nАтака: 45 — максимальная в игре!\nЭнергия: 45.6, Скорость: 16.24\n\nСпособность Triangulate: рисует треугольники между токеном, пчелой и игроком — собирает пыльцу со всех цветов внутри треугольника.\nGifted бонус: +15% длительности меток\n\nВ топ красном билде нужно 4-8x Vector Bee Gifted.\nНезаменима для эндгейма в любом улье.",
     },
 ]
+
+BSS_QA += [
+    {
+        "keywords": ["синий билд", "blue build", "синий", "blue", "билд синего", "синяя пчела", "синий улей билд", "blue hive build"],
+        "answer": "🔵 **Синий улей — билд и поля**\n\n✅ Лучшие поля: Blue Flower Field, Bamboo Field, Pineapple Patch, Pine Tree Forest, Coconut Field\n\nЯкорная пчела: Gifted Bucko Bee (+20% ёмкости синего поля)\n\nТоп пчёлы синего:\n• Cobalt Bee (Gifted) — Blue Pulse между синими пчёлами\n• Buoyant Bee (Gifted) — 60 энергии, x1.2 ёмкость\n• Vicious Bee — 9 атаки, синяя пчела!\n• Ninja Bee — скорость 21\n• Diamond Bee (Gifted) — 1000 мёда за конвертацию\n• Tabby Bee (Gifted) — масштабирование\n• Photon Bee — бесконечная энергия\n• Fuzzy Bee (Gifted) — 100 пыльцы за действие\n\nСтратегия: максимизируй Blue Pollen и Bucko/Cobalt синергию.",
+    },
+    {
+        "keywords": ["гайд", "guide", "гайд новичка", "новичок", "как начать", "с нуля", "начинающий", "первый раз", "0 до"],
+        "answer": "🚀 **Гайд для новичков BSS — с нуля**\n\nШаг 1: Иди на Clover Field — лучшее стартовое поле\nШаг 2: Выполни все квесты Black Bear — он даёт 2.35 млрд мёда суммарно!\nШаг 3: Получи 5 пчёл → открой 5 Bee Gate (Bamboo, Spider, Strawberry)\nШаг 4: Получи Brave Bee → открой Brave Bee Gate\nШаг 5: Получи Honey Bee → открой Honey Bee Gate (Rose Field!)\nШаг 6: Купи Tabby Bee в Ticket Shop — высший приоритет!\nШаг 7: Параллельно делай Brown Bear квесты — стабильный источник Royal Jelly\n\nВведи коды: FOURtunate и ThreeBeeVee — дают Marshmallow Bee!\nВорота открываются НЕ за билеты — за наличие пчёл!",
+    },
+    {
+        "keywords": ["красный билд", "red build", "красный", "red", "билд красного", "красная пчела", "красный улей билд"],
+        "answer": "🔴 **Красный улей — билд и поля**\n\n✅ Лучшие поля: Rose Field, Strawberry Field, Mushroom Field, Cactus Field, Pepper Patch, Pumpkin Patch\n❌ Bamboo — БЕЛОЕ поле, не для красного!\n\nТоп пчёлы красного:\n• 11x Precise Bee (Gifted) — +3% супер-крит каждая\n• 4-8x Vector Bee (Gifted) — атака 45, марки\n• 10x Spicy Bee (Gifted) — Rage токены +атака\n• Crimson Bee (Gifted) — +15% моментальной красной конвертации\n• Vicious Bee — атака 9\n• Festive Bee (Gifted) — x1.25 конвертация\n• Tabby Bee (Gifted) — 1000 стаков\n• Photon Bee — бесконечная энергия\n• 2x Tadpole Bee (Gifted)\n• Riley Bee (Gifted) — +20% ёмкости красного\n\nАмулеты: Supreme Star, Silver Ant, Diamond Stick Bug, Supreme Cog",
+    },
+    {
+        "keywords": ["белый билд", "white build", "белый", "white", "билд белого", "белая пчела"],
+        "answer": "⚪ **Белый улей — билд и поля**\n\n✅ Лучшие поля: Clover Field, Bamboo Field, Sunflower Field, Mountain Top Field (эндгейм)\n\nЯкорная пчела: Gifted Exhausted Bee (+20% ёмкости белого поля)\n\nТоп пчёлы белого:\n• Fuzzy Bee (Gifted) — 100 пыльцы, Fuzz Bombs\n• Gummy Bee (Gifted) — Glob на 81 цветок\n• Windy Bee (Gifted) — x2 бустов от облаков\n• Festive Bee (Gifted) — x1.25 конвертация\n• Tabby Bee (Gifted) — масштабирование\n• Photon Bee — бесконечная энергия\n• Exhausted Bee (Gifted) — +20% ёмкость белого\n• Hasty Bee (Gifted) — +20% скорость\n• Carpenter Bee (Gifted) — +25% Tool Pollen\n\nСтратегия: держи 10x Precision и Focus стаки во время фарма.",
+    },
+    {
+        "keywords": ["spicy", "спайси", "spicy bee", "rage токен", "inferno", "пламя", "flame"],
+        "answer": "🌶️ **Spicy Bee (Mythic) — A-тир**\n\nЭнергия: 20, Скорость: 14, Атака: 5\n\nRage токены — +1 атаки пчёлам на 45 сек (стак до 4x)\nСпособность Inferno — 6 пламён в круге + 2 Fire Bee на 15 сек\nGifted Flame Fuel — +50% длительности пламени + масло\nGifted бонус: +25% длительности пламени\n\nВ топ красном билде нужно 10x Spicy Bee Gifted.",
+    },
+    {
+        "keywords": ["precise", "прецайз", "precise bee", "super crit", "супер крит", "target practice"],
+        "answer": "🎯 **Precise Bee (Mythic) — A-тир**\n\nАтака: 8, Энергия: 40, Скорость: 11.2\n+5% шанс крита и +3% шанс супер-крита базово\n\nTarget Practice — 3 мишени, при активации дают Focus токены и собирают с 29 цветов\nАктивация всех 3 = Precision бафф (+2% супер-крит на 60сек, стак до 10x)\nGifted бонус: +3% шанс супер-крита\n\nВ топ красном билде нужно 11x Precise Bee Gifted!",
+    },
+    {
+        "keywords": ["cobalt", "кобальт", "cobalt bee", "crimson", "кримсон", "crimson bee", "dual pulse"],
+        "answer": "💙❤️ **Cobalt и Crimson Bee (Event) — A-тир**\n\nCobalt Bee (синяя): Скорость 18.2, Атака 7\nBlue Pulse — прыгает между синими пчёлами, собирая с 9 цветов вокруг каждой\nGifted: +15% моментальной синей конвертации\n\nCrimson Bee (красная): идентичные характеристики\nRed Pulse — то же для красных\nGifted: +15% моментальной красной конвертации\n\nАктивация обеих = Dual Pulse — мощнейший бонус!\nCobalt незаменима для синего улья, Crimson для красного.",
+    },
+    {
+        "keywords": ["gummy", "гамми", "gummy bee", "goo", "glob", "gumdrop"],
+        "answer": "🟢 **Gummy Bee (Event) — S-тир**\n\nЭнергия: 50, Скорость: 14, Атака: 3\nGlob — покрывает 49 цветов гуем (81 если Gifted)\nGumdrop Barrage — мощная атака\nGifted бонус: +5% мёда с пыльцы\n\nОбязательна для белых/смешанных ульев.\nНужна для Spirit Bear — без неё Spirit Bear не поговорит с тобой!\nПолучить: Gummy Bee Egg Claim.",
+    },
+    {
+        "keywords": ["festive", "фестив", "festive bee", "рождество", "beesmas", "festive gift"],
+        "answer": "🎄 **Festive Bee (Event) — S-тир**\n\nКонвертация: 150 мёда/1 сек (одна из лучших!)\nСкорость: 16.1, Энергия: 20\nFestive Gift — даёт предметы ВСЕМ игрокам на сервере (Star Jelly, Field Dice, Festive Beans)\nFestive Blessing — +100% моментальной конвертации и x2 скорости на 10 сек\nGifted бонус: x1.25 скорости конвертации\n\nПолучить: только во время ивента Beesmas (Новый год).",
+    },
+    {
+        "keywords": ["tadpole", "тадпол", "tadpole bee", "frog", "лягушка", "пузыри", "bubble"],
+        "answer": "🐸 **Tadpole Bee (Mythic) — S-тир**\n\nЭнергия: 10 (самая низкая — но это плюс! конвертирует чаще)\nСкорость: 11.2, Атака: 1\nSummon Frog — лягушки прыгают по полю, создают пузыри, подбирают токены, атакуют врагов\nGathering Bubbles+: 85% шанс (Gifted) создать пузырь при сборе\nGifted лягушки создают Gold Bubbles\nGifted бонус: +25% длительности пузырей\n\nВ топ красном билде 2x Tadpole Bee Gifted.",
+    },
+    {
+        "keywords": ["windy bee", "ветер", "windy", "облако", "cloud", "windy bee shrine"],
+        "answer": "💨 **Windy Bee (Event) — A-тир**\n\nСкорость: 19.6, Энергия: 20, Атака: 4\nGifted бонус: +15% моментальной белой конвертации + x2 бустов от облаков\n\nОткрывает Windy Bee Gate — эндгейм зоны!\n\nКак получить:\n• Wild Windy Bee появляется случайно в полях\n• Привлечь через Windy Bee Shrine — положи нужные предметы\n\nОбязательна для белого/смешанного улья в эндгейме.",
+    },
+    {
+        "keywords": ["lion", "лион", "lion bee", "лев", "лучший легендарный"],
+        "answer": "🦁 **Lion Bee (Legendary) — B-тир**\n\nАтака: 10 (лучшая среди легендарных!)\nЭнергия: 60 (максимальная среди легендарных)\nСкорость: 19.6\nGifted бонус: +5% пыльцы от Gifted пчёл\n\nХороша для мид-гейма, но в эндгейме уступает мифическим.",
+    },
+    {
+        "keywords": ["diamond", "диамонд", "diamond bee", "конвертация", "1000 меда"],
+        "answer": "💎 **Diamond Bee (Legendary) — B-тир**\n\nКонвертация: 1000 мёда/4 сек (лучшая базовая конвертация в игре!)\nЭнергия: 20, Скорость: 14, Атака: 1\nGifted бонус: x1.2 скорость конвертации\n\nНесмотря на низкую атаку — мощная для смешанных/синих ульев.",
+    },
+    {
+        "keywords": ["ninja", "ниндзя", "ninja bee", "скорость 21", "самая быстрая"],
+        "answer": "🥷 **Ninja Bee (Legendary) — B-тир**\n\nСкорость: 21 (быстрейшая вместе с Photon Bee)\nЭнергия: 20, Атака: 4\nGifted бонус: +5% скорости всех пчёл\n\nХороша для быстрого фарма полей, но в эндгейме уступает мифическим.",
+    },
+    {
+        "keywords": ["brave", "брейв", "brave bee", "brave bee gate", "зачем brave"],
+        "answer": "💪 **Brave Bee (Rare)**\n\nАтака: 5 (лучшая среди Rare!)\nКонвертация: 200 мёда за поездку\nЭнергия: 30, Скорость: 16.8\nОткрывает Brave Bee Gate → Pineapple Patch, Stump Field, Cactus Field\nGifted бонус: +1 атаки для всех пчёл улья\n\nОдна из первых целей для новичка!",
+    },
+    {
+        "keywords": ["honey bee", "хани", "honey bee gate", "конвертация epic", "360 меда"],
+        "answer": "🍯 **Honey Bee (Epic)**\n\nКонвертация: 360 мёда/2 сек — лучшая среди Epic!\nЭнергия: 20, Скорость: 14, Атака: 1\nОткрывает Honey Bee Gate → Rose Field, Pumpkin Patch, Pine Tree Forest\nGifted бонус: x1.5 мёда с токенов\n\nПолучи как можно раньше — открывает Rose Field (лучшее красное поле)!",
+    },
+    {
+        "keywords": ["слоты", "slots", "bee slots", "сколько слотов", "50 слотов", "mountain top shop", "расширение улья"],
+        "answer": "📦 **Слоты улья**\n\nНачинаешь с 25 слотов\nДо 50 слотов покупаются в Mountain Top Shop за мёд\n26-й слот: 3 миллиона мёда\nЦена растёт — 50-й стоит более 2 триллионов!\n\nСовет: сначала заполни 25 слотов качественными пчёлами, потом расширяй.",
+    },
+    {
+        "keywords": ["robo bear", "робо медведь", "robo bear challenge", "challenge", "supreme cog"],
+        "answer": "🤖 **Robo Bear Challenge**\n\nРежим испытания — максимальный урон за ограниченное время.\n\nЛучший для Robo Bear: Красный улей!\n• Vector Bee (атака 45)\n• Vicious Bee (атака 9)\n• Precise Bee x11 (супер-крит)\n• Spicy Bee (Rage токены)\n• Максимальные амулеты на атаку\n\nНаграды: Supreme Cog, редкие предметы.",
+    },
+    {
+        "keywords": ["brown bear", "браун", "repeatable", "повторяемые", "royal jelly квест"],
+        "answer": "🟤 **Brown Bear**\n\nКвесты средней сложности.\nЧасть квестов повторяемые каждый час — стабильный источник Royal Jelly\n\nЗапускай Brown Bear параллельно с Black Bear — комбо даёт максимум Royal Jelly в начале игры.",
+    },
+    {
+        "keywords": ["polar bear", "полар", "crafting", "крафт", "готовка", "cooking", "potions", "зелья"],
+        "answer": "🐻‍❄️ **Polar Bear — крафт и готовка**\n\nВводит систему крафта и готовки.\nТребует создавать еду и зелья для квестов.\n\nНе торопись с Polar Bear — сначала закончи Black Bear и Brown Bear.\nДо Polar Bear твоё время лучше на накопление мёда, яиц и Royal Jelly.",
+    },
+    {
+        "keywords": ["мутация", "mutation", "какая мутация", "мутации пчел"],
+        "answer": "🧬 **Мутации пчёл**\n\nЛучшие мутации:\n• Precise Bee → Attack\n• Vector Bee → Energy или Gather Amount\n• Spicy Bee → Convert Amount\n• Baby Bee → Bee Ability Rate\n• Остальные → Attack\n\nМутации не критичны в начале — сначала получи нужных пчёл.",
+    },
+]

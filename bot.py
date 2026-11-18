@@ -81,7 +81,7 @@ async def ask_ai(question: str) -> str:
         "Если вопрос не по Bee Swarm Simulator — вежливо скажи что отвечаешь только по этой игре."
     )
     payload = {
-        "model": "meta-llama/llama-3.1-8b-instruct:free",
+        "model": "meta-llama/llama-3.1-8b-instruct",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question},

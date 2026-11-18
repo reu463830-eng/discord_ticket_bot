@@ -5,7 +5,9 @@
 
 import os
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
+MSK = timezone(timedelta(hours=3))
 from pathlib import Path
 
 import discord
@@ -82,9 +84,9 @@ class CloseView(ui.View):
 
         # Лог в ai-logs
         embed = discord.Embed(
-            title="🔒 Тикет закрыт",
+            title="� Тикет закрыт",
             color=discord.Color.red(),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(MSK),
         )
         embed.add_field(name="🎟️ ID тикета",        value=f"`{ticket_id}`",          inline=False)
         embed.add_field(name="👤 Открыл",            value=opener_name,               inline=True)
@@ -172,7 +174,7 @@ class TicketView(ui.View):
             return
 
         # Сохраняем мету
-        opened_at = datetime.now(timezone.utc).strftime("%d.%m.%Y %H:%M UTC")
+        opened_at = datetime.now(MSK).strftime("%d.%m.%Y %H:%M МСК")
         ticket_meta[channel.id] = {
             "opener":    f"{user} (`{user.id}`)",
             "opened_at": opened_at,
@@ -180,9 +182,9 @@ class TicketView(ui.View):
 
         # Лог открытия в ai-logs
         log_embed = discord.Embed(
-            title="🎟️ Тикет открыт",
+            title="📬 Тикет открыт",
             color=discord.Color.green(),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(MSK),
         )
         log_embed.add_field(name="🎟️ ID тикета",   value=f"`{channel.id}`",          inline=False)
         log_embed.add_field(name="👤 Открыл",       value=f"{user} (`{user.id}`)",    inline=True)

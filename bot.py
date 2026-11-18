@@ -103,7 +103,12 @@ async def ask_ai(question: str) -> str:
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as resp:
                 data = await resp.json()
-                return data["choices"][0]["message"]["content"]
+                if "choices" in data:
+                    return data["choices"][0]["message"]["content"]
+                elif "error" in data:
+                    return f"❌ Ошибка API: {data['error'].get('message', str(data['error']))}"
+                else:
+                    return f"❌ Неожиданный ответ: {str(data)[:300]}"
     except Exception as e:
         return f"❌ Ошибка при запросе к AI: {e}"
 

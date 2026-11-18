@@ -6,6 +6,7 @@
 import os
 import re
 import json
+import asyncio
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -402,23 +403,79 @@ async def post_panel(channel: discord.TextChannel):
 async def on_message(message: discord.Message):
     if message.author.bot:
         return
-    if message.channel.name == HELP_CHANNEL:
+    # Отвечаем на вопросы только внутри веток канала ai-help
+    if (
+        isinstance(message.channel, discord.Thread)
+        and message.channel.parent
+        and message.channel.parent.name == HELP_CHANNEL
+    ):
         async with message.channel.typing():
             answer = find_answer(message.content)
-        thread_name = message.content[:50] + ("..." if len(message.content) > 50 else "")
-        try:
-            thread = await message.create_thread(name=f"🐝 {thread_name}")
-            embed = discord.Embed(
-                description=answer,
-                color=discord.Color.yellow(),
-            )
-            embed.set_footer(text="Пчолки AI • BSS Help")
-            await thread.send(embed=embed)
-        except discord.Forbidden:
-            embed = discord.Embed(description=answer, color=discord.Color.yellow())
-            embed.set_footer(text="Пчолки AI • BSS Help")
-            await message.reply(embed=embed)
+        embed = discord.Embed(
+            description=answer,
+            color=discord.Color.yellow(),
+        )
+        embed.set_footer(text="Пчолки AI • BSS Help")
+        await message.reply(embed=embed)
     await bot.process_commands(message)
+
+
+# ---------- Кнопка создания ветки в ai-help ----------
+
+class CreateThreadView(ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @ui.button(
+        label="Создать ветку",
+        style=discord.ButtonStyle.primary,
+        emoji="🐝",
+        custom_id="create_help_thread",
+    )
+    async def create_thread(self, interaction: discord.Interaction, button: ui.Button):
+        channel = interaction.channel
+        user = interaction.user
+        thread_name = f"вопрос от {user.name}"
+        try:
+            thread = await channel.create_thread(
+                name=thread_name,
+                type=discord.ChannelType.public_thread,
+                auto_archive_duration=1440,
+            )
+            await thread.send(
+                content=user.mention,
+                embed=discord.Embed(
+                    description=(
+                        "🐝 Привет! Спрашивай что хочешь — постараюсь ответить.\n\n"
+                        "Знаю про пчёл, ульи, баффы, поля, квесты, коды и многое другое по **Bee Swarm Simulator**!"
+                    ),
+                    color=discord.Color.yellow(),
+                ).set_footer(text="Пчолки AI • BSS Help"),
+            )
+            await interaction.response.send_message(
+                f"✅ Ветка создана: {thread.mention}", ephemeral=True
+            )
+        except discord.Forbidden:
+            await interaction.response.send_message(
+                "❌ Нет прав создавать ветки.", ephemeral=True
+            )
+
+
+async def post_help_panel(channel: discord.TextChannel):
+    embed = discord.Embed(
+        title="🐝 Пчолки AI — помощник по Bee Swarm Simulator",
+        description=(
+            "Привет! Я Пчолки AI — твой помощник по **Bee Swarm Simulator**.\n\n"
+            "Знаю всё про пчёл и их редкости, типы ульев и лучшие билды, "
+            "баффы и стаки, поля для фарма, квесты медведей, промокоды и многое другое.\n\n"
+            "Нажми кнопку ниже — создастся личная ветка где ты сможешь задать любой вопрос. "
+            "Отвечаю быстро и по делу 🍯"
+        ),
+        color=discord.Color.yellow(),
+    )
+    embed.set_footer(text="Пчолки AI • BSS Help")
+    await channel.send(embed=embed, view=CreateThreadView())
+    print(f"Панель ai-help отправлена в #{channel.name}")
 
 
 @bot.event
@@ -434,7 +491,26 @@ async def on_ready():
         print(f"Канал #{PANEL_CHANNEL} не найден.")
         return
 
-    # Удаляем все старые панели и постим свежую
+    bot.add_view(TicketView())
+    bot.add_view(CloseView())
+    bot.add_view(CreateThreadView())
+
+    # Панель ai-help
+    help_channel = discord.utils.get(bot.get_all_channels(), name=HELP_CHANNEL)
+    if help_channel:
+        # Удаляем старую панель
+        async for msg in help_channel.history(limit=20):
+            if msg.author == bot.user:
+                try:
+                    await msg.delete()
+                except discord.Forbidden:
+                    pass
+        await post_help_panel(help_channel)
+    else:
+        print(f"Канал #{HELP_CHANNEL} не найден.")
+
+    bot_add_view = CreateThreadView()
+    bot.add_view(bot_add_view)
     async for msg in channel.history(limit=50):
         if msg.author == bot.user:
             try:

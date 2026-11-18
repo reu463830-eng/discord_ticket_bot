@@ -29,7 +29,7 @@ SUPPORT_CATEGORY = os.environ.get("SUPPORT_CATEGORY", "Support")
 LOG_CHANNEL      = os.environ.get("LOG_CHANNEL", "ai-logs")
 TICKETS_PNG      = BASE / "Tickets.png"
 STAFF_ROLES = [
-    "Staff", "Support", "Администратор", "Admin", "Moderator", "Модератор", "Админ", "Assistant", "Mod",
+    "Assistant", "Mod", "*",
 ]
 
 MSK = timezone(timedelta(hours=3))

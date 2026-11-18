@@ -5,12 +5,14 @@
 
 import os
 import re
+import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import discord
 from discord import ui
 from discord.ext import commands
+from bss_knowledge import find_answer
 
 BASE = Path(__file__).resolve().parent
 
@@ -27,6 +29,7 @@ if not TOKEN or "ВСТАВЬ" in TOKEN:
 PANEL_CHANNEL    = os.environ.get("PANEL_CHANNEL", "create-ticket")
 SUPPORT_CATEGORY = os.environ.get("SUPPORT_CATEGORY", "Support")
 LOG_CHANNEL      = os.environ.get("LOG_CHANNEL", "ai-logs")
+HELP_CHANNEL     = os.environ.get("HELP_CHANNEL", "ai-help")
 TICKETS_PNG      = BASE / "Tickets.png"
 STAFF_ROLES = [
     "Assistant", "Mod", "*",
@@ -47,6 +50,23 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 ticket_meta: dict[int, dict] = {}
 ticket_counter = 0
+
+# ---------- Статистика ----------
+
+STATS_FILE = BASE / "stats.json"
+
+def load_stats() -> dict:
+    if STATS_FILE.exists():
+        try:
+            return json.loads(STATS_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {"opened": 0, "closed": 0, "staff": {}}
+
+def save_stats(stats: dict):
+    STATS_FILE.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
+
+stats = load_stats()
 
 
 # ---------- Логирование ----------
@@ -125,6 +145,40 @@ class CloseModal(ui.Modal, title="Закрытие тикета"):
         log_embed.add_field(name="📝 Причина закрытия", value=close_reason,                inline=False)
         log_embed.set_footer(text="Пчолки AI • Ticket Log")
         await log_ticket(guild, log_embed)
+
+        # Транскрипт
+        transcript_lines = []
+        async for msg in channel.history(limit=500, oldest_first=True):
+            if msg.author == bot.user and not msg.content:
+                continue  # пропускаем embed-сообщения бота
+            ts = msg.created_at.astimezone(MSK).strftime("%d.%m.%Y %H:%M МСК")
+            line = f"[{ts}] {msg.author}: {msg.content}"
+            if msg.attachments:
+                line += " " + " ".join(a.url for a in msg.attachments)
+            transcript_lines.append(line)
+
+        if transcript_lines:
+            transcript_text = (
+                f"Транскрипт тикета | {category} | Открыл: {opener_name} | {opened_at}\n"
+                f"{'='*60}\n"
+            ) + "\n".join(transcript_lines)
+            transcript_bytes = transcript_text.encode("utf-8")
+            transcript_file = discord.File(
+                fp=__import__("io").BytesIO(transcript_bytes),
+                filename=f"transcript-{channel.name}.txt",
+            )
+            log_ch = discord.utils.get(guild.text_channels, name=LOG_CHANNEL)
+            if log_ch:
+                await log_ch.send(
+                    content=f"📋 Транскрипт тикета `{channel.name}`",
+                    file=transcript_file,
+                )
+
+        # Статистика
+        stats["closed"] += 1
+        closer_key = str(closer)
+        stats["staff"][closer_key] = stats["staff"].get(closer_key, 0) + 1
+        save_stats(stats)
 
         try:
             await channel.delete()
@@ -251,6 +305,10 @@ async def create_ticket_channel(interaction: discord.Interaction, category_name:
     log_embed.set_footer(text="Пчолки AI • Ticket Log")
     await log_ticket(guild, log_embed)
 
+    # Статистика
+    stats["opened"] += 1
+    save_stats(stats)
+
     # Сообщение внутри тикета
     ticket_embed = discord.Embed(
         title=f"Тикет — {category_name}",
@@ -341,6 +399,29 @@ async def post_panel(channel: discord.TextChannel):
 # ---------- События ----------
 
 @bot.event
+async def on_message(message: discord.Message):
+    if message.author.bot:
+        return
+    if message.channel.name == HELP_CHANNEL:
+        async with message.channel.typing():
+            answer = find_answer(message.content)
+        thread_name = message.content[:50] + ("..." if len(message.content) > 50 else "")
+        try:
+            thread = await message.create_thread(name=f"🐝 {thread_name}")
+            embed = discord.Embed(
+                description=answer,
+                color=discord.Color.yellow(),
+            )
+            embed.set_footer(text="Пчолки AI • BSS Help")
+            await thread.send(embed=embed)
+        except discord.Forbidden:
+            embed = discord.Embed(description=answer, color=discord.Color.yellow())
+            embed.set_footer(text="Пчолки AI • BSS Help")
+            await message.reply(embed=embed)
+    await bot.process_commands(message)
+
+
+@bot.event
 async def on_ready():
     print(f"Бот вошёл как {bot.user} (Пчолки AI)")
     try:
@@ -362,6 +443,35 @@ async def on_ready():
             except discord.Forbidden:
                 print("Нет прав удалить старую панель.")
     await post_panel(channel)
+
+
+@bot.tree.command(name="stats", description="Статистика тикетов")
+async def ticket_stats(interaction: discord.Interaction):
+    # Только стафф
+    user_role_names = [r.name for r in interaction.user.roles]
+    is_staff = any(r in user_role_names for r in STAFF_ROLES)
+    if not is_staff:
+        await interaction.response.send_message("❌ Нет доступа.", ephemeral=True)
+        return
+
+    currently_open = len(ticket_meta)
+
+    embed = discord.Embed(
+        title="📊 Статистика тикетов",
+        color=discord.Color.blurple(),
+        timestamp=datetime.now(MSK),
+    )
+    embed.add_field(name="📬 Открыто всего",    value=str(stats["opened"]),  inline=True)
+    embed.add_field(name="📪 Закрыто всего",    value=str(stats["closed"]),  inline=True)
+    embed.add_field(name="🟢 Сейчас открытых", value=str(currently_open),   inline=True)
+
+    if stats["staff"]:
+        top = sorted(stats["staff"].items(), key=lambda x: x[1], reverse=True)[:5]
+        top_text = "\n".join(f"`{i+1}.` {name} — **{count}** закрыт." for i, (name, count) in enumerate(top))
+        embed.add_field(name="🏆 Топ стаффа", value=top_text, inline=False)
+
+    embed.set_footer(text="Пчолки AI • Stats")
+    await interaction.response.send_message(embed=embed)
 
 
 bot.run(TOKEN)

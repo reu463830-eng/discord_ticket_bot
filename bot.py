@@ -457,8 +457,19 @@ async def on_message(message: discord.Message):
         async with message.channel.typing():
             answer = await ask_ai(message.content)
         embed = discord.Embed(description=answer, color=discord.Color.yellow())
-        embed.set_footer(text="Пчолки AI • BSS Help")
+        embed.set_footer(text="Пчолки AI • BSS Help • ветка удалится через 5 мин после последнего ответа")
         await message.reply(embed=embed)
+
+        # Удаляем ветку через 5 минут после последнего ответа
+        thread = message.channel
+        await asyncio.sleep(300)
+        # Проверяем что после нашего ответа не было новых сообщений
+        last_msg = await thread.history(limit=1).flatten()
+        if last_msg and last_msg[0].author == bot.user:
+            try:
+                await thread.delete()
+            except Exception:
+                pass
     await bot.process_commands(message)
 
 

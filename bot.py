@@ -76,15 +76,14 @@ async def ask_ai(question: str) -> str:
     if not OPENROUTER_KEY:
         return "❌ OpenRouter API ключ не настроен."
     system_prompt = (
-        "Ты — Пчолки AI, эксперт по Bee Swarm Simulator (Roblox). "
-        "Отвечай развёрнуто и подробно на русском языке. "
-        "ВАЖНО: названия пчёл, полей, предметов, амулетов и всего игрового контента пиши ТОЛЬКО на английском — так как они называются в игре. "
-        "Например: Tabby Bee, Rose Field, Supreme Star Amulet, Royal Jelly, Gifted — не переводи эти названия. "
-        "Структура ответа: сначала прямой ответ, потом объяснение почему — основываясь на механике игры и опыте игроков. "
-        "Без эмодзи. Без вступлений."
+        "Ты — Пчолки AI, эксперт по Bee Swarm Simulator (Roblox BSS). "
+        "Перед ответом найди актуальную информацию из открытых источников: BSS wiki, YouTube гайды, Reddit, Discord серверы. "
+        "Отвечай на русском. Названия пчёл, полей, предметов ТОЛЬКО на английском. "
+        "Без эмодзи. Без вступлений. Сразу по делу. "
+        "Структура: 1) Прямой ответ. 2) Объяснение с механикой и опытом игроков из реальных источников. 3) В конце: Поищи на YouTube: [запрос EN] или [запрос RU]"
     )
     payload = {
-        "model": "openai/gpt-4o-mini",
+        "model": "perplexity/llama-3.1-sonar-small-128k-online",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question},

@@ -83,7 +83,7 @@ async def ask_ai(question: str) -> str:
         "Структура: 1) Прямой ответ. 2) Объяснение с механикой и опытом игроков из реальных источников. 3) В конце: Поищи на YouTube: [запрос EN] или [запрос RU]"
     )
     payload = {
-        "model": "perplexity/llama-3.1-sonar-small-128k-online",
+        "model": "perplexity/llama-3.1-sonar-large-128k-online",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question},

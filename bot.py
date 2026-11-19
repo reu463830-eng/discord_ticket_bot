@@ -53,6 +53,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 ticket_meta: dict[int, dict] = {}
 ticket_counter = 0
+thread_level_cache: dict[int, str] = {}  # thread_id -> уровень игрока
 
 # ---------- Статистика ----------
 
@@ -96,7 +97,7 @@ async def search_bss_wiki(query: str) -> str:
         return ""
 
 
-async def ask_ai(question: str) -> str:
+async def ask_ai(question: str, level: str = "Мид-гейм") -> str:
     if not OPENROUTER_KEY:
         return "❌ OpenRouter API ключ не настроен."
 
@@ -104,15 +105,30 @@ async def ask_ai(question: str) -> str:
     wiki_info = await search_bss_wiki(question)
 
     system_prompt = (
-        "Ты — Пчолки AI, эксперт по Bee Swarm Simulator (Roblox BSS). "
-        "Отвечай на русском. Названия пчёл, полей, предметов ТОЛЬКО на английском. "
-        "Без эмодзи. Без вступлений. Сразу по делу. "
-        "Структура: 1) Прямой ответ. 2) Объяснение с механикой и опытом игроков из реальных источников. 3) В конце: Поищи на YouTube: [запрос EN] или [запрос RU]"
+        "Ты — Пчолки AI, лучший эксперт по Bee Swarm Simulator на этом сервере. "
+        f"Уровень игрока: {level}. Адаптируй глубину ответа под этот уровень. "
+        "Новичку — базовые советы и с чего начать. Мид-гейму — конкретные механики и приоритеты. Эндгейму — точные цифры, Gifted билды, оптимизация.\n"
+        "Отвечай на русском. Названия пчёл, полей, предметов только на английском. "
+        "Без эмодзи. Без вступлений. По делу.\n\n"
+        "Структура ответа:\n"
+        "1) Конкретный прямой ответ\n"
+        "2) Почему именно так — механика, цифры, опыт игроков\n"
+        "3) Поищи на YouTube: [запрос EN] или [запрос RU]\n\n"
+        "КЛЮЧЕВЫЕ ЗНАНИЯ:\n"
+        "— Пыльца собирается пчёлами с цветов полей. Micro-Converter — предмет конвертации, НЕ пыльца.\n"
+        "— Fuzzy Bee собирает 100 пыльцы за действие (рекорд). Tabby Bee при 1000 стаках — 1760 мёда/3сек.\n"
+        "— Баффы Precision и Focus стакаются до 10x — держи оба на максимуме.\n"
+        "— Красный улей поля: Rose Field, Strawberry, Mushroom, Cactus, Pepper Patch. Bamboo — НЕ красное.\n"
+        "— Синий улей поля: Blue Flower, Bamboo, Pineapple Patch, Pine Tree Forest, Coconut.\n"
+        "— Белый улей поля: Clover, Sunflower, Dandelion, Bamboo, Mountain Top.\n"
+        "— Spirit Bear требует Gummy Bee. Star Jelly = гарантированный Gifted, только на Mythic/Legendary.\n"
+        "— Ворота открываются за пчёл, НЕ за билеты. Baby Bee — Legendary, НЕ Event."
     )
     if wiki_info:
-        system_prompt += f"\n\nАктуальная информация с BSS Wiki:\n{wiki_info}"
+        system_prompt += f"\n\nДополнительно с BSS Wiki по теме вопроса:\n{wiki_info}"
+
     payload = {
-        "model": "openai/gpt-4o-mini",
+        "model": "openai/gpt-4o",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question},
@@ -483,7 +499,9 @@ async def on_message(message: discord.Message):
         and message.channel.parent.name == HELP_CHANNEL
     ):
         async with message.channel.typing():
-            answer = await ask_ai(message.content)
+            level = thread_level_cache.get(message.channel.id, "Мид-гейм")
+            wiki_info = await search_bss_wiki(message.content)
+            answer = await ask_ai(message.content, level)
         embed = discord.Embed(description=answer, color=discord.Color.yellow())
         embed.set_footer(text="Пчолки AI • BSS Help")
         await message.reply(embed=embed)
@@ -502,17 +520,23 @@ async def on_message(message: discord.Message):
 
 # ---------- Кнопка создания ветки в ai-help ----------
 
-class CreateThreadView(ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
+# ---------- Выбор уровня игрока ----------
 
-    @ui.button(
-        label="Создать ветку",
-        style=discord.ButtonStyle.primary,
-        emoji="🐝",
-        custom_id="create_help_thread",
+class LevelSelect(ui.View):
+    def __init__(self):
+        super().__init__(timeout=60)
+
+    @ui.select(
+        placeholder="Выбери свой уровень в BSS...",
+        custom_id="bss_level_select",
+        options=[
+            discord.SelectOption(label="Новичок", emoji="🌱", description="Только начал играть, меньше 20 пчёл"),
+            discord.SelectOption(label="Мид-гейм", emoji="⚔️", description="20-40 пчёл, есть базовые ивентовые"),
+            discord.SelectOption(label="Эндгейм", emoji="👑", description="40+ пчёл, Mythic пчёлы, Spirit Bear"),
+        ]
     )
-    async def create_thread(self, interaction: discord.Interaction, button: ui.Button):
+    async def select_level(self, interaction: discord.Interaction, select: ui.Select):
+        level = select.values[0]
         channel = interaction.channel
         user = interaction.user
         thread_name = f"вопрос от {user.name}"
@@ -522,15 +546,16 @@ class CreateThreadView(ui.View):
                 type=discord.ChannelType.public_thread,
                 auto_archive_duration=1440,
             )
+            # Сохраняем уровень в имени треда для использования в ответах
+            thread_level_cache[thread.id] = level
             await thread.send(
                 content=user.mention,
                 embed=discord.Embed(
                     title="Пчолки AI — помощник по BSS",
                     description=(
+                        f"Уровень: **{level}**\n\n"
                         "Задавай любой вопрос по **Bee Swarm Simulator**.\n\n"
-                        "Знаю про пчёл и их характеристики, лучшие билды ульев, "
-                        "поля для фарма, баффы, квесты медведей, амулеты, Royal Jelly, "
-                        "gifted пчёл и прогрессию от новичка до эндгейма.\n\n"
+                        "Знаю про пчёл, билды ульев, поля, баффы, квесты, амулеты, Royal Jelly и прогрессию.\n\n"
                         "Отвечаю развёрнуто — с объяснением и опытом игроков.\n\n"
                         "Ветка автоматически удалится через 5 минут после последнего ответа."
                     ),
@@ -546,15 +571,31 @@ class CreateThreadView(ui.View):
             )
 
 
+class CreateThreadView(ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @ui.button(
+        label="Создать ветку",
+        style=discord.ButtonStyle.primary,
+        emoji="🐝",
+        custom_id="create_help_thread",
+    )
+    async def create_thread(self, interaction: discord.Interaction, button: ui.Button):
+        await interaction.response.send_message(
+            "Выбери свой уровень в игре:", view=LevelSelect(), ephemeral=True
+        )
+
+
 async def post_help_panel(channel: discord.TextChannel):
     embed = discord.Embed(
-        title="🐝 Пчолки AI — помощник по Bee Swarm Simulator",
+        title="Пчолки AI — помощник по Bee Swarm Simulator",
         description=(
             "Привет! Я Пчолки AI — твой помощник по **Bee Swarm Simulator**.\n\n"
             "Знаю всё про пчёл и их редкости, типы ульев и лучшие билды, "
             "баффы и стаки, поля для фарма, квесты медведей, промокоды и многое другое.\n\n"
             "Нажми кнопку ниже — создастся личная ветка где ты сможешь задать любой вопрос. "
-            "Отвечаю быстро и по делу 🍯"
+            "Отвечаю быстро и по делу"
         ),
         color=discord.Color.yellow(),
     )

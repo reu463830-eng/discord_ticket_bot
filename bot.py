@@ -72,18 +72,47 @@ def save_stats(stats: dict):
 stats = load_stats()
 
 
+async def search_bss_wiki(query: str) -> str:
+    """Ищет информацию на BSS wiki через Google Custom Search или прямой fetch"""
+    search_url = f"https://bee-swarm-simulator.fandom.com/wiki/Special:Search?query={query.replace(' ', '+')}&scope=internal"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://bee-swarm-simulator.fandom.com/api.php?action=query&list=search&srsearch={query.replace(' ', '+')}&format=json&srlimit=3",
+                timeout=aiohttp.ClientTimeout(total=10),
+                headers={"User-Agent": "PcholkiAI/1.0"}
+            ) as resp:
+                data = await resp.json()
+                results = data.get("query", {}).get("search", [])
+                if not results:
+                    return ""
+                snippets = []
+                for r in results[:2]:
+                    title = r.get("title", "")
+                    snippet = r.get("snippet", "").replace('<span class="searchmatch">', "").replace("</span>", "")
+                    snippets.append(f"{title}: {snippet}")
+                return "\n".join(snippets)
+    except Exception:
+        return ""
+
+
 async def ask_ai(question: str) -> str:
     if not OPENROUTER_KEY:
         return "❌ OpenRouter API ключ не настроен."
+
+    # Ищем инфу на BSS wiki
+    wiki_info = await search_bss_wiki(question)
+
     system_prompt = (
         "Ты — Пчолки AI, эксперт по Bee Swarm Simulator (Roblox BSS). "
-        "Перед ответом найди актуальную информацию из открытых источников: BSS wiki, YouTube гайды, Reddit, Discord серверы. "
         "Отвечай на русском. Названия пчёл, полей, предметов ТОЛЬКО на английском. "
         "Без эмодзи. Без вступлений. Сразу по делу. "
         "Структура: 1) Прямой ответ. 2) Объяснение с механикой и опытом игроков из реальных источников. 3) В конце: Поищи на YouTube: [запрос EN] или [запрос RU]"
     )
+    if wiki_info:
+        system_prompt += f"\n\nАктуальная информация с BSS Wiki:\n{wiki_info}"
     payload = {
-        "model": "perplexity/llama-3.1-sonar-large-128k-online",
+        "model": "openai/gpt-4o-mini",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question},
